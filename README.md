@@ -14,13 +14,25 @@ A simple weekend project which I always wanted to make. (built with AI coz my ha
 ## Installation
 
 ```bash
-npm install pixel-text-generator
+npm install @thatkid02/pixel-text
+```
+
+## Quick Try
+
+Want to see it in action? Try these commands:
+
+```bash
+# Run the interactive example
+npx @thatkid02/pixel-text run example
+
+# Clean up example files when done
+npx @thatkid02/pixel-text clean example
 ```
 
 ## Basic Usage
 
 ```typescript
-import { generateTextPatterns, PatternOptions } from 'pixel-text-generator';
+import { generateTextPatterns, PatternOptions } from '@thatkid02/pixel-text';
 
 // Basic usage
 const patterns = generateTextPatterns('HELLO');
@@ -47,7 +59,7 @@ import {
     getWaveColor, 
     getIntensityColor,
     getRandomColor
-} from 'pixel-text-generator';
+} from '@thatkid02/pixel-text';
 
 // Use preset colors
 const color = getPresetColor('blue');
@@ -68,7 +80,7 @@ const randomColor = getRandomColor();
 ### Animation
 
 ```typescript
-import { AnimationManager } from 'pixel-text-generator';
+import { AnimationManager } from '@thatkid02/pixel-text';
 
 const animation = new AnimationManager({
     mode: 'fade', // 'fade' | 'slide' | 'bounce' | 'flash'
@@ -85,7 +97,7 @@ animation.stop();
 ### Sound Effects
 
 ```typescript
-import { soundManager } from 'pixel-text-generator';
+import { soundManager } from '@thatkid02/pixel-text';
 
 // Play built-in sounds
 soundManager.play('click');
@@ -104,7 +116,7 @@ soundManager.unmute();
 ### Font Management
 
 ```typescript
-import { fontManager, BUILT_IN_FONTS, DOWNLOADABLE_FONTS } from 'pixel-text-generator';
+import { fontManager, BUILT_IN_FONTS, DOWNLOADABLE_FONTS } from '@thatkid02/pixel-text';
 
 // Use built-in fonts
 fontManager.setFont(BUILT_IN_FONTS.PIXEL);
@@ -119,7 +131,7 @@ const fonts = fontManager.getAvailableFonts();
 ### Styling
 
 ```typescript
-import { getPixelStyle } from 'pixel-text-generator';
+import { getPixelStyle } from '@thatkid02/pixel-text';
 
 const style = getPixelStyle({
     shape: 'square', // 'square' | 'circle' | 'diamond'
@@ -132,7 +144,7 @@ const style = getPixelStyle({
 ## React Integration
 
 ```tsx
-import { generateTextPatterns, AnimationManager, getWaveColor } from 'pixel-text-generator';
+import { generateTextPatterns, AnimationManager, getWaveColor } from '@thatkid02/pixel-text';
 
 const PixelText = () => {
     const [patterns, setPatterns] = useState([]);
@@ -205,26 +217,60 @@ interface SoundOptions {
 }
 ```
 
+## CLI Commands
+
+The package includes CLI commands to help you explore its features:
+
+### Run Example
+
+Start the interactive React example application:
+
+```bash
+npx @thatkid02/pixel-text run example
+```
+
+This will:
+1. Install necessary dependencies
+2. Start a development server
+3. Open the example in your browser
+
+### Clean Example
+
+Clean the example project files:
+
+```bash
+npx @thatkid02/pixel-text clean example
+```
+
+This removes:
+- node_modules directory
+- dist directory
+- package-lock.json
+
 ## Examples
 
-The package includes complete examples demonstrating different ways to use the library:
+The package includes a complete React example demonstrating all features. You can:
 
-### React Example
+1. Run it directly using the CLI:
+```bash
+npx @thatkid02/pixel-text run example
+```
 
-Located in `/examples/react`, this example demonstrates integration with React and includes:
-- TypeScript support
-- Tailwind CSS styling
-- Interactive controls for all pattern options
-- Color customization
-- Animation examples
-- Sound integration
-
-To run the React example:
+2. Or manually:
 ```bash
 cd examples/react
 npm install
 npm run dev
 ```
+
+The example includes:
+- Interactive text-to-pixel conversion
+- All color modes and presets
+- Animation controls
+- Sound effects
+- Font management
+- Pixel shape customization
+- And more!
 
 ## Browser Support
 

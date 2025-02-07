@@ -54,5 +54,11 @@
     "react-dom": {
       "optional": true
     }
+  },
+  "bin": {
+    "pixel-text": "./dist/cli.js"
+  },
+  "dependencies": {
+    "commander": "^11.1.0"
   }
 }
