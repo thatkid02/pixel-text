@@ -19,14 +19,12 @@ npm install @thatkid02/pixel-text
 
 ## Quick Try
 
-Want to see it in action? Try these commands:
+Want to see it in action? Try:
 
 ```bash
 # Run the interactive example
-npx @thatkid02/pixel-text run example
+npx @thatkid02/pixel-text@latest run example
 
-# Clean up example files when done
-npx @thatkid02/pixel-text clean example
 ```
 
 ## Basic Usage
@@ -42,103 +40,148 @@ const options: Partial<PatternOptions> = {
     width: 20,
     height: 20,
     font: '20px monospace',
-    threshold: 128
+    threshold: 128,
+    colorOptions: {
+        mode: 'solid',
+        primaryColor: '#000000'
+    },
+    animationOptions: {
+        mode: 'all-together',
+        speed: 50,
+        soundType: 'pop'
+    },
+    renderOptions: {
+        pixelShape: 'square'
+    }
 };
 
 const customPatterns = generateTextPatterns('HELLO', options);
 ```
 
-## Advanced Features
-
-### Color Management
+## Color Management
 
 ```typescript
 import { 
-    getPresetColor, 
-    getRainbowColor, 
-    getWaveColor, 
-    getIntensityColor,
-    getRandomColor
+    getPixelColor,
+    getPresetColor,
+    getRainbowColor,
+    getWaveColor,
+    getRandomColor,
+    getIntensityColor
 } from '@thatkid02/pixel-text';
 
 // Use preset colors
-const color = getPresetColor('blue');
+const color = getPresetColor(0, 3, 'Sunset');
 
 // Generate rainbow colors
-const rainbowColor = getRainbowColor(index, totalPixels);
+const rainbowColor = getRainbowColor(index, total);
 
 // Create wave effect colors
-const waveColor = getWaveColor(x, y, time);
-
-// Intensity-based coloring
-const intensityColor = getIntensityColor(value);
+const waveColor = getWaveColor(index, total, time);
 
 // Random colors
 const randomColor = getRandomColor();
+
+// Intensity-based coloring
+const intensityColor = getIntensityColor(alpha, primaryColor);
 ```
 
-### Animation
+## Animation
 
 ```typescript
 import { AnimationManager } from '@thatkid02/pixel-text';
 
-const animation = new AnimationManager({
-    mode: 'fade', // 'fade' | 'slide' | 'bounce' | 'flash'
-    duration: 1000,
-    easing: 'easeInOut'
+const manager = new AnimationManager(pattern);
+
+// Animate with options
+await manager.animate({
+    mode: 'pixel-by-pixel',
+    speed: 50,
+    soundType: 'pop',
+    soundVolume: 0.5,
+    soundPitch: 800
+}, (state) => {
+    // Update UI with animation state
+    console.log(state.visiblePixels, state.isAnimating);
 });
 
-animation.start();
-animation.pause();
-animation.resume();
-animation.stop();
+// Control animation
+manager.start();
+manager.cancel();
+manager.dispose();
 ```
 
-### Sound Effects
+## Sound Effects
 
 ```typescript
 import { soundManager } from '@thatkid02/pixel-text';
 
-// Play built-in sounds
-soundManager.play('click');
-
-// Custom sound options
-soundManager.play('beep', {
+// Play sounds with options
+await soundManager.playSound({
+    type: 'beep',  // 'beep' | 'click' | 'pop' | 'none'
     volume: 0.5,
-    pitch: 1.2
+    pitch: 800
 });
 
-// Mute/unmute sounds
-soundManager.mute();
-soundManager.unmute();
+// Cleanup
+soundManager.dispose();
 ```
 
-### Font Management
+## Font Management
 
 ```typescript
 import { fontManager, BUILT_IN_FONTS, DOWNLOADABLE_FONTS } from '@thatkid02/pixel-text';
 
 // Use built-in fonts
-fontManager.setFont(BUILT_IN_FONTS.PIXEL);
+const systemFonts = fontManager.getBuiltInFonts();
 
-// Load custom fonts
-await fontManager.loadFont('CustomFont', 'path/to/font.ttf');
+// Load downloadable fonts
+const webFont = DOWNLOADABLE_FONTS[0];
+await fontManager.loadFont(webFont);
 
-// Check available fonts
-const fonts = fontManager.getAvailableFonts();
+// Add custom font
+await fontManager.addCustomFont({
+    label: 'Custom Font',
+    value: 'CustomFont',
+    url: 'path/to/font.woff2',
+    format: 'woff2'
+});
+
+// Get all available fonts
+const allFonts = fontManager.getAllFonts();
 ```
 
-### Styling
+## Styling
 
 ```typescript
 import { getPixelStyle } from '@thatkid02/pixel-text';
 
-const style = getPixelStyle({
-    shape: 'square', // 'square' | 'circle' | 'diamond'
-    size: 10,
-    color: '#FF0000',
-    opacity: 0.8
+const style = getPixelStyle('square', 10, '#FF0000', {
+    borderRadius: 2,
+    rotation: 45  // For diamond shape
 });
+```
+
+## Types
+
+```typescript
+interface PatternOptions {
+    width: number;
+    height: number;
+    font: string;
+    fontFamily?: string;
+    fontWeight?: string | number;
+    fontStyle?: 'normal' | 'italic';
+    threshold?: number;
+    colorOptions?: ColorOptions;
+    animationOptions?: AnimationOptions;
+    renderOptions?: RenderOptions;
+}
+
+type ColorMode = 'solid' | 'preset' | 'rainbow' | 'wave' | 'random';
+type AnimationMode = 'pixel-by-pixel' | 'all-together';
+type PixelShape = 'square' | 'circle' | 'diamond' | 'triangle';
+type SoundType = 'beep' | 'click' | 'pop' | 'none';
 ```
 
 ## React Integration
@@ -216,67 +259,6 @@ interface SoundOptions {
     delay?: number;
 }
 ```
-
-## CLI Commands
-
-The package includes CLI commands to help you explore its features:
-
-### Run Example
-
-Start the interactive React example application:
-
-```bash
-npx @thatkid02/pixel-text run example
-```
-
-This will:
-1. Install necessary dependencies
-2. Start a development server
-3. Open the example in your browser
-
-### Clean Example
-
-Clean the example project files:
-
-```bash
-npx @thatkid02/pixel-text clean example
-```
-
-This removes:
-- node_modules directory
-- dist directory
-- package-lock.json
-
-## Examples
-
-The package includes a complete React example demonstrating all features. You can:
-
-1. Run it directly using the CLI:
-```bash
-npx @thatkid02/pixel-text run example
-```
-
-2. Or manually:
-```bash
-cd examples/react
-npm install
-npm run dev
-```
-
-The example includes:
-- Interactive text-to-pixel conversion
-- All color modes and presets
-- Animation controls
-- Sound effects
-- Font management
-- Pixel shape customization
-- And more!
-
-## Browser Support
-
-- Requires a modern browser with Canvas API support
-- WebAudio API support needed for sound features
-- CSS custom properties for styling options
 
 ## License
 
