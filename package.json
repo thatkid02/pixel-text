@@ -32,11 +32,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.11.17",
+    "@types/node": "^22.13.1",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.3.3",
+    "typescript": "^5.7.3",
     "vite": "^6.1.0"
   },
   "files": [
@@ -45,8 +45,8 @@
     "examples"
   ],
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -60,6 +60,6 @@
     "pixel-text": "./dist/cli.js"
   },
   "dependencies": {
-    "commander": "^11.1.0"
+    "commander": "^13.1.0"
   }
 }
