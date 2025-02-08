@@ -18,7 +18,7 @@ const program = new Command();
 program
   .name('@thatkid02/pixel-text')
   .description('CLI tool for pixel-text library')
-  .version('0.0.1');
+  .version('0.0.4');
 
 program
   .command('run')
