@@ -5,8 +5,8 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { spawn } from 'child_process';
-import { rm } from 'fs/promises';
+import { createServer } from 'http';
+import { readFile } from 'fs/promises';
 
 // Get the package root directory
 const __filename = fileURLToPath(import.meta.url);
@@ -30,92 +30,47 @@ program
       process.exit(1);
     }
 
-    const exampleDir = join(packageRoot, 'examples/react');
+    const exampleDistDir = join(packageRoot, 'examples/react/dist');
     
-    if (!existsSync(exampleDir)) {
-      console.error('Example directory not found. Please check your installation.');
+    if (!existsSync(exampleDistDir)) {
+      console.error('Example dist directory not found. Please check your installation.');
       process.exit(1);
     }
 
-    console.log('📦 Installing dependencies...');
-    
-    // Run npm install in the example directory
-    const install = spawn('npm', ['install'], {
-      cwd: exampleDir,
-      stdio: 'inherit',
-      shell: true
+    const port = 3000;
+    const server = createServer(async (req, res) => {
+      try {
+        let filePath = join(exampleDistDir, req.url === '/' ? 'index.html' : req.url || '');
+        
+        // Handle 404 by serving index.html (for SPA routing)
+        if (!existsSync(filePath)) {
+          filePath = join(exampleDistDir, 'index.html');
+        }
+
+        const content = await readFile(filePath);
+        const ext = filePath.split('.').pop();
+        
+        // Basic content-type mapping
+        const contentTypes: Record<string, string> = {
+          'html': 'text/html',
+          'js': 'text/javascript',
+          'css': 'text/css',
+          'png': 'image/png',
+          'jpg': 'image/jpeg',
+          'svg': 'image/svg+xml',
+        };
+
+        res.setHeader('Content-Type', contentTypes[ext || ''] || 'text/plain');
+        res.end(content);
+      } catch (error) {
+        res.statusCode = 500;
+        res.end('Internal Server Error');
+      }
     });
 
-    install.on('close', (code) => {
-      if (code !== 0) {
-        console.error('Failed to install dependencies');
-        process.exit(1);
-      }
-
-      console.log('🚀 Starting the example...');
-      
-      // Run npm run dev in the example directory
-      const dev = spawn('npm', ['run', 'dev'], {
-        cwd: exampleDir,
-        stdio: 'inherit',
-        shell: true
-      });
-
-      dev.on('error', (error) => {
-        console.error('Failed to start the example:', error);
-        process.exit(1);
-      });
+    server.listen(port, () => {
+      console.log(`🚀 Example running at http://localhost:${port}`);
     });
-  });
-
-program
-  .command('clean')
-  .description('Clean example project files')
-  .argument('[type]', 'Type of example to clean (e.g., "example")', 'example')
-  .action(async (type: string) => {
-    if (type !== 'example') {
-      console.error('Currently only "example" type is supported');
-      process.exit(1);
-    }
-
-    const exampleDir = join(packageRoot, 'examples/react');
-    
-    if (!existsSync(exampleDir)) {
-      console.error('Example directory not found. Please check your installation.');
-      process.exit(1);
-    }
-
-    try {
-      console.log('🧹 Cleaning example project...');
-      
-      // Clean directories
-      const dirsToClean = [
-        join(exampleDir, 'node_modules'),
-        join(exampleDir, 'dist')
-      ];
-
-      for (const dir of dirsToClean) {
-        if (existsSync(dir)) {
-          await rm(dir, { recursive: true, force: true });
-        }
-      }
-
-      // Clean files
-      const filesToClean = [
-        join(exampleDir, 'package-lock.json')
-      ];
-
-      for (const file of filesToClean) {
-        if (existsSync(file)) {
-          await rm(file);
-        }
-      }
-
-      console.log('✨ Example project cleaned successfully!');
-    } catch (error) {
-      console.error('Failed to clean example project:', error);
-      process.exit(1);
-    }
   });
 
 program.parse();

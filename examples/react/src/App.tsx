@@ -16,7 +16,7 @@ import {
     BUILT_IN_FONTS,
     DOWNLOADABLE_FONTS,
     AnimationOptions
-} from 'pixel-text-generator';
+} from '@thatkid02/pixel-text';
 
 interface PixelGridProps {
     pattern: boolean[][];
