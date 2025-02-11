@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mouse Ripple Effect</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1e293b;
+        }
+
+        pixel-canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <pixel-canvas data-gap="6" data-speed="80" data-colors="#fef08a, #fde047, #eab308" data-no-focus></pixel-canvas>
+
+    <script>
+        class Pixel {
+            constructor(canvas, context, x, y, color, speed, delay) {
+                this.width = canvas.width;
+                this.height = canvas.height;
+                this.ctx = context;
+                this.x = x;
+                this.y = y;
+                this.baseColor = color;
+                this.color = color;
+                this.speed = this.getRandomValue(0.1, 0.9) * speed;
+                this.size = 2;
+                this.sizeStep = Math.random() * 0.4;
+                this.minSize = 0.5;
+                this.maxSizeInteger = 2;
+                this.maxSize = this.getRandomValue(this.minSize, this.maxSizeInteger);
+                this.delay = delay;
+                this.counter = 0;
+                this.counterStep = Math.random() * 4 + (this.width + this.height) * 0.01;
+                this.isShimmer = true;
+                this.isReverse = false;
+                this.rippleIntensity = 0;
+                this.twinkleOffset = Math.random() * Math.PI * 2;
+                this.twinkleSpeed = 0.05 + Math.random() * 0.05;
+            }
+
+            getRandomValue(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            updateTwinkle(time) {
+                const twinkleEffect = Math.sin(time * this.twinkleSpeed + this.twinkleOffset);
+                const twinkleFactor = (twinkleEffect + 1) / 2;
+
+                const r = parseInt(this.baseColor.slice(1, 3), 16);
+                const g = parseInt(this.baseColor.slice(3, 5), 16);
+                const b = parseInt(this.baseColor.slice(5, 7), 16);
+
+                const brightnessVariation = 0.3;
+                const br = Math.min(255, r + twinkleFactor * r * brightnessVariation);
+                const bg = Math.min(255, g + twinkleFactor * g * brightnessVariation);
+                const bb = Math.min(255, b + twinkleFactor * b * brightnessVariation);
+
+                this.color = `rgb(${Math.round(br)},${Math.round(bg)},${Math.round(bb)})`;
+            }
+
+            draw() {
+                const centerOffset = this.maxSizeInteger * 0.5 - this.size * 0.5;
+                this.ctx.fillStyle = this.color;
+                const rippleOffset = this.rippleIntensity * 3;
+
+                this.ctx.fillRect(
+                    this.x + centerOffset,
+                    this.y + centerOffset + rippleOffset,
+                    this.size,
+                    this.size
+                );
+            }
+
+            update() {
+                if (this.isShimmer) {
+                    this.shimmer();
+                }
+                this.draw();
+            }
+
+            shimmer() {
+                if (this.size >= this.maxSize) {
+                    this.isReverse = true;
+                } else if (this.size <= this.minSize) {
+                    this.isReverse = false;
+                }
+
+                if (this.isReverse) {
+                    this.size -= this.speed;
+                } else {
+                    this.size += this.speed;
+                }
+            }
+        }
+
+        class PixelCanvas extends HTMLElement {
+            constructor() {
+                super();
+                this.pixels = [];
+                this.ripples = [];
+                this.startTime = performance.now();
+                this.mouseX = 0;
+                this.mouseY = 0;
+            }
+
+            connectedCallback() {
+                const canvas = document.createElement('canvas');
+                this.appendChild(canvas);
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+
+                this.setupCanvas();
+                window.addEventListener('resize', () => this.setupCanvas());
+
+                // Track mouse click to create ripples
+                this.canvas.addEventListener('click', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    this.createRipple(x, y);
+                });
+
+                this.animate();
+            }
+
+            get colors() {
+                return this.dataset.colors?.split(",") || ["#38bdf8", "#22d3ee", "#06b6d4"];
+            }
+
+            get gap() {
+                return parseInt(this.dataset.gap) || 6;
+            }
+
+            get speed() {
+                return parseInt(this.dataset.speed) || 80;
+            }
+
+            setupCanvas() {
+                const rect = this.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+
+                this.canvas.width = rect.width * dpr;
+                this.canvas.height = rect.height * dpr;
+                this.canvas.style.width = `${rect.width}px`;
+                this.canvas.style.height = `${rect.height}px`;
+                this.ctx.scale(dpr, dpr);
+
+                this.createPixels();
+            }
+
+            createPixels() {
+                this.pixels = [];
+                for (let x = 0; x < this.canvas.width; x += this.gap) {
+                    for (let y = 0; y < this.canvas.height; y += this.gap) {
+                        const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+                        this.pixels.push(new Pixel(this.canvas, this.ctx, x, y, color, this.speed * 0.001, 0));
+                    }
+                }
+            }
+
+            createRipple(x, y) {
+                // Create multiple ripple rings for a more detailed effect
+                for (let i = 0; i < 3; i++) {
+                    this.ripples.push({
+                        x,
+                        y,
+                        radius: 0,
+                        maxRadius: Math.max(this.canvas.width, this.canvas.height) * 0.2,
+                        speed: 5 + i * 2,
+                        amplitude: 1 - i * 0.2,
+                        phase: i * Math.PI / 4
+                    });
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(this.animate.bind(this));
+
+                const currentTime = performance.now();
+                const elapsedTime = (currentTime - this.startTime) / 1000;
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Update and draw pixels
+                this.pixels.forEach(pixel => {
+                    pixel.updateTwinkle(elapsedTime);
+
+                    // Calculate combined ripple effect
+                    let totalRippleEffect = 0;
+                    this.ripples.forEach(ripple => {
+                        const dx = pixel.x - ripple.x;
+                        const dy = pixel.y - ripple.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < ripple.radius + 20 && distance > ripple.radius - 20) {
+                            const rippleEffect = Math.sin((distance - ripple.radius) * 0.5 + ripple.phase)
+                                * ripple.amplitude
+                                * (1 - ripple.radius / ripple.maxRadius);
+                            totalRippleEffect += rippleEffect;
+                        }
+                    });
+
+                    pixel.rippleIntensity = totalRippleEffect;
+                    pixel.update();
+                });
+
+                // Update ripples
+                this.ripples = this.ripples.filter(ripple => {
+                    ripple.radius += ripple.speed;
+                    return ripple.radius <= ripple.maxRadius;
+                });
+            }
+        }
+
+        customElements.define('pixel-canvas', PixelCanvas);
+    </script>
+</body>
+</html>

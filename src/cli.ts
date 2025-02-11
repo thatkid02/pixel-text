@@ -23,28 +23,30 @@ program
 program
   .command('run')
   .description('Run pixel-text examples')
-  .argument('[type]', 'Type of example to run (e.g., "example")', 'example')
+  .argument('[type]', 'Type of example to run (e.g., "example" or "random")', 'example')
   .action(async (type: string) => {
-    if (type !== 'example') {
-      console.error('Currently only "example" type is supported');
+    if (!['example', 'random'].includes(type)) {
+      console.error('Only "example" and "random" types are supported');
       process.exit(1);
     }
 
-    const exampleDistDir = join(packageRoot, 'examples/react/dist');
+    const distDir = type === 'example' 
+      ? join(packageRoot, 'examples/react/dist')
+      : join(packageRoot, 'examples/vanilla-js');
     
-    if (!existsSync(exampleDistDir)) {
-      console.error('Example dist directory not found. Please check your installation.');
+    if (!existsSync(distDir)) {
+      console.error(`${type} directory not found. Please check your installation.`);
       process.exit(1);
     }
 
     const port = 3000;
     const server = createServer(async (req, res) => {
       try {
-        let filePath = join(exampleDistDir, req.url === '/' ? 'index.html' : req.url || '');
+        let filePath = join(distDir, req.url === '/' ? 'index.html' : req.url || '');
         
         // Handle 404 by serving index.html (for SPA routing)
         if (!existsSync(filePath)) {
-          filePath = join(exampleDistDir, 'index.html');
+          filePath = join(distDir, 'index.html');
         }
 
         const content = await readFile(filePath);
@@ -69,7 +71,7 @@ program
     });
 
     server.listen(port, () => {
-      console.log(`🚀 Example running at http://localhost:${port}`);
+      console.log(`🚀 ${type} running at http://localhost:${port}`);
     });
   });
 
