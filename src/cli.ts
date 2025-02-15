@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
@@ -37,11 +37,11 @@ program
   .command('run')
   .description('Run pixel-text examples')
   .action(async () => {
-    const options: string[] = ['example', 'random', 'vanilla-js'];
+    const options: string[] = ['react', 'random', 'vanilla-js'];
     console.log('Select the type of example to run:');
     options.forEach((opt, index) => console.log(`${index + 1}. ${opt}`));
 
-    const choice: string = await askQuestion('Enter your choice[1-3]: ');
+    const choice: string = await askQuestion('Enter the number of your choice: ');
     const selectedIndex: number = parseInt(choice) - 1;
     const type: string | undefined = options[selectedIndex];
     
@@ -50,7 +50,9 @@ program
       process.exit(1);
     }
 
-    const distDir: string = join(packageRoot, `examples/${type}`);
+    const distDir: string = type === 'react' 
+      ? join(packageRoot, 'examples/react/dist')
+      : join(packageRoot, `examples/${type}`);
     
     if (!existsSync(distDir)) {
       console.error(`${type} directory not found. Please check your installation.`);
@@ -68,21 +70,30 @@ program
         }
 
         const content: Buffer = await readFile(filePath);
-        const ext: string | undefined = filePath.split('.').pop();
+        const ext: string = extname(filePath).substring(1);
         
-        // Basic content-type mapping
+        // Enhanced content-type mapping for correct MIME types
         const contentTypes: Record<string, string> = {
           html: 'text/html',
           js: 'text/javascript',
+          mjs: 'text/javascript',
+          ts: 'application/javascript',
+          tsx: 'application/javascript',
           css: 'text/css',
           png: 'image/png',
           jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
           svg: 'image/svg+xml',
+          json: 'application/json',
+          wasm: 'application/wasm',
         };
 
-        res.setHeader('Content-Type', contentTypes[ext || ''] || 'text/plain');
+        const contentType = contentTypes[ext] || 'application/octet-stream';
+        
+        res.setHeader('Content-Type', contentType);
         res.end(content);
       } catch (error) {
+        console.error('Error serving file:', error);
         res.statusCode = 500;
         res.end('Internal Server Error');
       }

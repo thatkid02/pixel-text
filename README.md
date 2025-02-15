@@ -23,7 +23,7 @@ Want to see it in action? Try:
 
 ```bash
 # Run the interactive example
-npx @thatkid02/pixel-text@latest run example
+npx @thatkid02/pixel-text@latest run 
 
 ```
 
