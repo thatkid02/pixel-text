@@ -1,6 +1,6 @@
 {
   "name": "@thatkid02/pixel-text",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "try and..",
   "type": "module",
   "main": "./dist/index.js",
@@ -43,7 +43,8 @@
     "dist",
     "README.md",
     "examples/react/dist",
-    "examples/vanilla-js"
+    "examples/vanilla-js",
+    "examples/random"
   ],
   "peerDependencies": {
     "react": "^19.0.0",

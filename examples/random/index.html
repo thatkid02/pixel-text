@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Explode Slow Mo thatkid</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        #pixelText {
+            font-size: 48px;
+            color: #000000;
+            margin-bottom: 20px;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 300px;
+  height: 6px;
+  background: black; 
+  border-radius: 5px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: black; 
+  height: 6px;
+  border-radius: 5px;
+}
+
+input[type="range"]::-moz-range-track {
+  background: black;
+  height: 6px;
+  border-radius: 5px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: white; 
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -5px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: white; 
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+
+        canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 100px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #000000;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="pixelText"> </div>
+        <div class="controls">
+            <input type="range" id="frameSlider" min="0" max="100" value="0" step="1">
+            <button id="playButton">loop</button>
+        </div>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        class Particle {
+            constructor(x, y, color) {
+                this.originalX = x;
+                this.originalY = y;
+                this.color = color;
+                this.size = 2;
+                this.angle = Math.random() * Math.PI * 2;
+                this.speed = Math.random() * 5 + 2;
+                this.frames = [];
+            }
+
+            generateFrames(totalFrames) {
+                this.frames = [];
+                
+                // Calculate explosion path
+                for (let i = 0; i < totalFrames; i++) {
+                    const progress = i / totalFrames;
+                    const reverse = 1 - progress;
+                    
+                    // Explosion phase (0-0.4)
+                    if (progress < 0.4) {
+                        const explodeProgress = progress / 0.4;
+                        const x = this.originalX + Math.cos(this.angle) * this.speed * 50 * explodeProgress;
+                        const y = this.originalY + Math.sin(this.angle) * this.speed * 50 * explodeProgress 
+                            //    + (explodeProgress * explodeProgress * 100); // Add gravity effect
+                        this.frames.push({
+                            x,
+                            y,
+                            alpha: Math.random() * 5 + 2
+                        });
+                    }
+                    // Return phase (0.4-1.0)
+                    else {
+                        const returnProgress = (progress - 0.4) / 0.6;
+                        const easing = 1 - Math.pow(1 - returnProgress, 3); // Cubic easing
+                        const prevFrame = this.frames[Math.floor(totalFrames * 0.4) - 1];
+                        const x = prevFrame.x + (this.originalX - prevFrame.x) * easing;
+                        const y = prevFrame.y + (this.originalY - prevFrame.y) * easing;
+                        this.frames.push({
+                            x,
+                            y,
+                            alpha: 1
+                        });
+                    }
+                }
+            }
+        }
+
+        class PixelText {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.textElement = document.getElementById('pixelText');
+                this.slider = document.getElementById('frameSlider');
+                this.playButton = document.getElementById('playButton');
+                this.particles = [];
+                this.totalFrames = 240;
+                this.currentFrame = 0;
+                this.isPlaying = false;
+                this.setupCanvas();
+                this.bindEvents();
+                this.generateParticles();
+                this.renderFrame(0);
+            }
+
+            setupCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            bindEvents() {
+                window.addEventListener('resize', () => {
+                    this.setupCanvas();
+                    this.generateParticles();
+                    this.renderFrame(this.currentFrame);
+                });
+
+                this.slider.addEventListener('input', (e) => {
+                    this.currentFrame = parseInt(e.target.value);
+                    this.renderFrame(this.currentFrame);
+                });
+
+                this.playButton.addEventListener('click', () => this.toggleAnimation());
+
+            }
+
+
+            generateParticles() {
+                const rect = new DOMRect(
+                    (this.canvas.width) / 2.42,
+                    (this.canvas.height) / 4,
+                    500,
+                    200
+                );
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = rect.width;
+                tempCanvas.height = rect.height;
+                
+                // Draw text to temporary canvas
+                tempCtx.font = '48px Arial';
+                tempCtx.fillStyle = '#38bdf8';
+                tempCtx.fillText("T H A T K I D", 0, rect.height * 0.8);
+                
+                // Sample pixels
+                const imageData = tempCtx.getImageData(0, 0, rect.width, rect.height);
+                const pixels = imageData.data;
+                this.particles = [];
+
+                // Create particles for non-transparent pixels
+                for (let y = 0; y < rect.height; y += 1) {
+                    for (let x = 0; x < rect.width; x += 1) {
+                        const i = (y * rect.width + x) * 4;
+                        if (pixels[i + 3] > 128) {
+                            const particle = new Particle(
+                                x + rect.left,
+                                y + rect.top,
+                                { r: 0, g: 0, b: 0 }
+                            );
+                            particle.generateFrames(this.totalFrames);
+                            this.particles.push(particle);
+                        }
+                    }
+                }
+            }
+
+            
+            toggleAnimation() {
+                this.isPlaying = !this.isPlaying;
+                this.playButton.textContent = this.isPlaying ? 'Pause' : 'Play';
+                
+                if (this.isPlaying) {
+                    this.animate();
+                }
+            }
+
+            animate() {
+                if (!this.isPlaying) return;
+
+                this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
+                this.slider.value = this.currentFrame;
+                this.renderFrame(this.currentFrame);
+                requestAnimationFrame(() => this.animate());
+            }
+
+            renderFrame(frame) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach(particle => {
+                    if (particle.frames[frame]) {
+                        const { x, y, alpha } = particle.frames[frame];
+                        this.ctx.fillStyle = `rgba(${particle.color.r}, ${particle.color.g}, ${particle.color.b}, ${alpha})`;
+                        this.ctx.fillRect(x, y, particle.size, particle.size);
+                    }
+                });
+
+                this.textElement.style.opacity = frame === 0 ? '1' : '0';
+            }
+        }
+
+        new PixelText();
+    </script>
+</body>
+</html>
