@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Explode Slow Mo thatkid</title>
+    <title>Explode Slow Mo Custom Text</title>
     <style>
         body, html {
             margin: 0;
@@ -17,78 +17,102 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
             color: white;
+            position: relative;
         }
 
         .container {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
             text-align: center;
-            position: relative;
             z-index: 2;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
 
         #pixelText {
             font-size: 48px;
             color: #000000;
-            margin-bottom: 20px;
             user-select: none;
             cursor: pointer;
-        }
-
-        input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 300px;
-  height: 6px;
-  background: black; 
-  border-radius: 5px;
-  outline: none;
-}
-
-input[type="range"]::-webkit-slider-runnable-track {
-  background: black; 
-  height: 6px;
-  border-radius: 5px;
-}
-
-input[type="range"]::-moz-range-track {
-  background: black;
-  height: 6px;
-  border-radius: 5px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: white; 
-  border-radius: 50%;
-  cursor: pointer;
-  margin-top: -5px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: white; 
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-
-        canvas {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            pointer-events: none;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin-top: 100px;
+            justify-content: center;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 300px;
+            height: 6px;
+            background: black;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: black;
+            height: 6px;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-moz-range-track {
+            background: black;
+            height: 6px;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 2px solid black;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 2px solid black;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        canvas {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
         button {
@@ -99,24 +123,57 @@ input[type="range"]::-moz-range-thumb {
             color: #ffffff;
             cursor: pointer;
             font-weight: bold;
+            min-width: 80px;
         }
 
         button:hover {
-            background: #000000;
+            background: #333333;
+        }
+
+        #textInput {
+            padding: 8px 12px;
+            font-size: 16px;
+            border: 2px solid #000000;
+            border-radius: 4px;
+            width: 300px;
+            text-align: center;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                padding: 15px;
+                bottom: 20px;
+            }
+
+            input[type="range"],
+            #textInput {
+                width: 250px;
+            }
+
+            .control-row {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
 <body>
+    <div id="pixelText"></div>
+    <canvas id="canvas"></canvas>
+    
     <div class="container">
-        <div id="pixelText"> </div>
         <div class="controls">
             <input type="range" id="frameSlider" min="0" max="100" value="0" step="1">
-            <button id="playButton">loop</button>
+            <div class="control-row">
+                <button id="playButton">loop</button>
+                <input type="text" id="textInput" placeholder="Enter your text here" value="T H A T K I D">
+            </div>
         </div>
     </div>
-    <canvas id="canvas"></canvas>
 
     <script>
+        // [Previous JavaScript code remains exactly the same]
         class Particle {
             constructor(x, y, color) {
                 this.originalX = x;
@@ -131,27 +188,21 @@ input[type="range"]::-moz-range-thumb {
             generateFrames(totalFrames) {
                 this.frames = [];
                 
-                // Calculate explosion path
                 for (let i = 0; i < totalFrames; i++) {
                     const progress = i / totalFrames;
-                    const reverse = 1 - progress;
                     
-                    // Explosion phase (0-0.4)
                     if (progress < 0.4) {
                         const explodeProgress = progress / 0.4;
                         const x = this.originalX + Math.cos(this.angle) * this.speed * 50 * explodeProgress;
-                        const y = this.originalY + Math.sin(this.angle) * this.speed * 50 * explodeProgress 
-                            //    + (explodeProgress * explodeProgress * 100); // Add gravity effect
+                        const y = this.originalY + Math.sin(this.angle) * this.speed * 50 * explodeProgress;
                         this.frames.push({
                             x,
                             y,
                             alpha: Math.random() * 5 + 2
                         });
-                    }
-                    // Return phase (0.4-1.0)
-                    else {
+                    } else {
                         const returnProgress = (progress - 0.4) / 0.6;
-                        const easing = 1 - Math.pow(1 - returnProgress, 3); // Cubic easing
+                        const easing = 1 - Math.pow(1 - returnProgress, 3);
                         const prevFrame = this.frames[Math.floor(totalFrames * 0.4) - 1];
                         const x = prevFrame.x + (this.originalX - prevFrame.x) * easing;
                         const y = prevFrame.y + (this.originalY - prevFrame.y) * easing;
@@ -170,6 +221,7 @@ input[type="range"]::-moz-range-thumb {
                 this.canvas = document.getElementById('canvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.textElement = document.getElementById('pixelText');
+                this.textInput = document.getElementById('textInput');
                 this.slider = document.getElementById('frameSlider');
                 this.playButton = document.getElementById('playButton');
                 this.particles = [];
@@ -180,6 +232,8 @@ input[type="range"]::-moz-range-thumb {
                 this.bindEvents();
                 this.generateParticles();
                 this.renderFrame(0);
+                
+                this.debounceTimeout = null;
             }
 
             setupCanvas() {
@@ -201,10 +255,22 @@ input[type="range"]::-moz-range-thumb {
 
                 this.playButton.addEventListener('click', () => this.toggleAnimation());
 
+                this.textInput.addEventListener('input', () => {
+                    if (this.debounceTimeout) {
+                        clearTimeout(this.debounceTimeout);
+                    }
+                    
+                    this.debounceTimeout = setTimeout(() => {
+                        this.generateParticles();
+                        this.currentFrame = 0;
+                        this.slider.value = 0;
+                        this.renderFrame(0);
+                    }, 150);
+                });
             }
 
-
             generateParticles() {
+                const text = this.textInput.value || 'Hello';
                 const rect = new DOMRect(
                     (this.canvas.width) / 2.42,
                     (this.canvas.height) / 4,
@@ -216,17 +282,14 @@ input[type="range"]::-moz-range-thumb {
                 tempCanvas.width = rect.width;
                 tempCanvas.height = rect.height;
                 
-                // Draw text to temporary canvas
                 tempCtx.font = '48px Arial';
                 tempCtx.fillStyle = '#38bdf8';
-                tempCtx.fillText("T H A T K I D", 0, rect.height * 0.8);
+                tempCtx.fillText(text, 0, rect.height * 0.8);
                 
-                // Sample pixels
                 const imageData = tempCtx.getImageData(0, 0, rect.width, rect.height);
                 const pixels = imageData.data;
                 this.particles = [];
 
-                // Create particles for non-transparent pixels
                 for (let y = 0; y < rect.height; y += 1) {
                     for (let x = 0; x < rect.width; x += 1) {
                         const i = (y * rect.width + x) * 4;
@@ -243,7 +306,6 @@ input[type="range"]::-moz-range-thumb {
                 }
             }
 
-            
             toggleAnimation() {
                 this.isPlaying = !this.isPlaying;
                 this.playButton.textContent = this.isPlaying ? 'Pause' : 'Play';
